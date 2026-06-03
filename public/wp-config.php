@@ -69,6 +69,12 @@ if (! empty($__env['REDIS_HOST'])) {
     if (! defined('WP_REDIS_CLIENT')) {
         define('WP_REDIS_CLIENT', 'phpredis');
     }
+    // Never let a cache failure fatal WordPress: the object-cache drop-in falls
+    // back to a non-persistent in-memory cache instead of throwing. Laravel Cloud
+    // explicitly warns that managed cache restarts cause transient connection errors.
+    if (! defined('WP_REDIS_GRACEFUL')) {
+        define('WP_REDIS_GRACEFUL', true);
+    }
 } elseif (! defined('WP_REDIS_DISABLED')) {
     define('WP_REDIS_DISABLED', true);
 }
