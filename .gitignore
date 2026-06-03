@@ -26,3 +26,9 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# WordPress runtime-only state (per-replica; never committed)
+/public/wp-content/.overlay-state.json
+/public/wp-content/.overlay-tmp/
+/public/wp-content/upgrade/
+/public/wp-content/cache/

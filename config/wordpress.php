@@ -39,4 +39,10 @@ return [
         'prefix' => env('WP_UPLOADS_PREFIX', 'uploads'),
     ],
 
+    // Runtime code overlay (sub-project #3).
+    'overlay' => [
+        'prefix'   => env('WP_OVERLAY_PREFIX', 'code'),
+        'readonly' => filter_var(env('WP_CODE_READONLY', false), FILTER_VALIDATE_BOOL),
+    ],
+
 ];

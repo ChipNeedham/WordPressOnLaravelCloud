@@ -32,6 +32,19 @@ unset($wp_empty_salts);
 
 $table_prefix = \App\WordPress\WpConfig::normalizePrefix($__env['WP_TABLE_PREFIX'] ?? 'wp_');
 
+// Code-overlay hardening: no in-admin file editor, no core auto-update.
+if (! defined('DISALLOW_FILE_EDIT')) {
+    define('DISALLOW_FILE_EDIT', true);
+}
+if (! defined('AUTOMATIC_UPDATER_DISABLED')) {
+    define('AUTOMATIC_UPDATER_DISABLED', true);
+}
+// Read-only kill switch: block ALL file mods when WP_CODE_READONLY is set.
+if (! defined('DISALLOW_FILE_MODS')
+    && filter_var(($__env['WP_CODE_READONLY'] ?? false), FILTER_VALIDATE_BOOL)) {
+    define('DISALLOW_FILE_MODS', true);
+}
+
 unset($__env, $wp_const_name, $wp_const_value);
 
 // ABSPATH is normally defined by wp-load.php (public/wp/). Guard for direct includes.
