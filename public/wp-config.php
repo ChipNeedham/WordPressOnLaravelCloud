@@ -20,6 +20,11 @@ foreach (\App\WordPress\WpConfig::map($__env) as $wp_const_name => $wp_const_val
     }
 }
 
+// Warn loudly if auth salts are missing — WordPress sessions are insecure without them.
+if (defined('AUTH_KEY') && AUTH_KEY === '') {
+    error_log('WordPress on Laravel Cloud: authentication salts are empty. Set AUTH_KEY..NONCE_SALT in the environment.');
+}
+
 $table_prefix = \App\WordPress\WpConfig::normalizePrefix($__env['WP_TABLE_PREFIX'] ?? 'wp_');
 
 unset($__env, $wp_const_name, $wp_const_value);

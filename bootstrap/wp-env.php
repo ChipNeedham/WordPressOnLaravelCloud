@@ -45,7 +45,8 @@ if (! function_exists('wp_env')) {
             }
         }
 
-        // Real environment variables win (Laravel Cloud injects these at runtime).
+        // Real environment variables win (Laravel Cloud injects these at runtime),
+        // including when explicitly set to an empty string.
         $keys = [
             'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT',
             'APP_KEY', 'APP_URL', 'APP_ENV', 'APP_DEBUG',
@@ -56,7 +57,7 @@ if (! function_exists('wp_env')) {
         ];
         foreach ($keys as $k) {
             $real = getenv($k);
-            if ($real !== false && $real !== '') {
+            if ($real !== false) {
                 $vars[$k] = $real;
             }
         }
