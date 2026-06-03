@@ -1079,6 +1079,12 @@ class WP_Object_Cache {
      * @return void
      */
     public function fetch_info() {
+        // LOCAL PATCH (WordPress on Laravel Cloud): managed Valkey ACL users (e.g.
+        // "application") are denied the INFO command (NOPERM). Server-version
+        // detection is best-effort and must NOT throw out of connect() — otherwise
+        // the whole object cache is disabled every request. Re-apply if the
+        // redis-cache drop-in is re-vendored. See DEPLOYMENT.md.
+        try {
         if ( defined( 'WP_REDIS_CLUSTER' ) ) {
             $connectionId = is_string( WP_REDIS_CLUSTER )
                 ? 'SERVER'
@@ -1107,6 +1113,9 @@ class WP_Object_Cache {
             $this->redis_version = $info['redis_version'];
         } elseif ( isset( $info['Server']['redis_version'] ) ) {
             $this->redis_version = $info['Server']['redis_version'];
+        }
+        } catch ( \Throwable $e ) {
+            // INFO unavailable (e.g. NOPERM on managed Valkey); leave version unknown.
         }
     }
 

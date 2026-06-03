@@ -84,3 +84,11 @@ health-check path is `/up`.
 - **Plugin/theme installs** done in wp-admin persist (written to the bucket, hydrated to other replicas).
   Set `WP_CODE_READONLY=true` to disable runtime installs and serve only git-managed code.
 - **WordPress core** is updated by deploying a new commit, not via wp-admin (core auto-update is off).
+- **Behind the TLS-terminating edge:** `wp-config.php` trusts `X-Forwarded-Proto` so `is_ssl()` is
+  correct (otherwise wp-login/wp-admin redirect-loop). The forwarded port is validated before use.
+- **Vendored object-cache drop-in is locally patched.** Managed Valkey ACL users (e.g. `application`)
+  are denied the `INFO` command; the drop-in's `fetch_info()` is wrapped so a denied `INFO` doesn't
+  abort the connection and silently disable the cache. If you re-vendor `redis-cache`
+  (`public/wp-content/object-cache.php` + the plugin copy), re-apply that `try/catch` (search the files
+  for "LOCAL PATCH"). The cache also runs in `WP_REDIS_GRACEFUL` mode (a Redis outage degrades to a
+  non-persistent cache rather than failing the request).

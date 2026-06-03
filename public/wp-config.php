@@ -15,11 +15,16 @@ require_once dirname(__DIR__) . '/app/WordPress/WpConfig.php';
 // Laravel Cloud terminates TLS at the edge and forwards plain HTTP with
 // X-Forwarded-Proto. Trust it so WordPress's is_ssl() is correct — otherwise
 // wp-login.php / wp-admin (which force SSL against an https siteurl) redirect-loop.
+// Trust model: Cloud's compute is only reachable via its edge proxy, which sets
+// these headers (the same basis as Laravel's TrustProxies on Cloud). The forwarded
+// port is still validated before use so a stray header can't poison $_SERVER.
 if (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') {
     $_SERVER['HTTPS'] = 'on';
-    if (! empty($_SERVER['HTTP_X_FORWARDED_PORT'])) {
-        $_SERVER['SERVER_PORT'] = $_SERVER['HTTP_X_FORWARDED_PORT'];
+    $__fwd_port = $_SERVER['HTTP_X_FORWARDED_PORT'] ?? '';
+    if (ctype_digit((string) $__fwd_port) && (int) $__fwd_port >= 1 && (int) $__fwd_port <= 65535) {
+        $_SERVER['SERVER_PORT'] = (int) $__fwd_port;
     }
+    unset($__fwd_port);
 }
 
 $__env = wp_env();
