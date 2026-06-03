@@ -46,7 +46,7 @@ if (! function_exists('wp_env')) {
         }
 
         // Real environment variables win (Laravel Cloud injects these at runtime),
-        // including when explicitly set to an empty string.
+        // including when explicitly set to an empty string (e.g. a passwordless DB).
         $keys = [
             'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT',
             'APP_KEY', 'APP_URL', 'APP_ENV', 'APP_DEBUG',
@@ -55,11 +55,22 @@ if (! function_exists('wp_env')) {
             'AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY',
             'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT',
         ];
+        // Security-sensitive keys must never be downgraded to empty by the
+        // environment: an empty real value falls back to the configured value
+        // instead of silently producing insecure WordPress sessions.
+        $sensitive = [
+            'AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY',
+            'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT',
+        ];
         foreach ($keys as $k) {
             $real = getenv($k);
-            if ($real !== false) {
-                $vars[$k] = $real;
+            if ($real === false) {
+                continue;
             }
+            if ($real === '' && in_array($k, $sensitive, true)) {
+                continue;
+            }
+            $vars[$k] = $real;
         }
 
         return $vars;

@@ -20,10 +20,15 @@ foreach (\App\WordPress\WpConfig::map($__env) as $wp_const_name => $wp_const_val
     }
 }
 
-// Warn loudly if auth salts are missing — WordPress sessions are insecure without them.
-if (defined('AUTH_KEY') && AUTH_KEY === '') {
-    error_log('WordPress on Laravel Cloud: authentication salts are empty. Set AUTH_KEY..NONCE_SALT in the environment.');
+// Warn loudly if any auth salt is empty — WordPress sessions are insecure without them.
+$wp_empty_salts = array_filter(
+    ['AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY', 'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT'],
+    static fn ($k) => defined($k) && constant($k) === ''
+);
+if ($wp_empty_salts !== []) {
+    error_log('WordPress on Laravel Cloud: empty authentication salts (' . implode(', ', $wp_empty_salts) . '). Set them in the environment; sessions are insecure without them.');
 }
+unset($wp_empty_salts);
 
 $table_prefix = \App\WordPress\WpConfig::normalizePrefix($__env['WP_TABLE_PREFIX'] ?? 'wp_');
 
