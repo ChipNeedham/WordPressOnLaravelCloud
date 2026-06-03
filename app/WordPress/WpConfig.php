@@ -62,43 +62,6 @@ class WpConfig
         ];
     }
 
-    /**
-     * Build the constants array from the framework's loaded config.
-     *
-     * @return array<string,mixed>
-     */
-    public static function fromConfig(): array
-    {
-        $connection = config('database.default');
-        $db = config("database.connections.{$connection}", []);
-
-        return self::map([
-            'DB_DATABASE' => $db['database'] ?? null,
-            'DB_USERNAME' => $db['username'] ?? null,
-            'DB_PASSWORD' => $db['password'] ?? '',
-            'DB_HOST'     => $db['host'] ?? '127.0.0.1',
-            'DB_PORT'     => $db['port'] ?? 3306,
-            'APP_KEY'     => config('app.key'),
-            'APP_URL'     => config('wordpress.home') ?: config('app.url'),
-            'APP_ENV'     => config('wordpress.environment_type'),
-            'APP_DEBUG'   => config('wordpress.debug'),
-            'AUTH_KEY'         => config('wordpress.salts.AUTH_KEY'),
-            'SECURE_AUTH_KEY'  => config('wordpress.salts.SECURE_AUTH_KEY'),
-            'LOGGED_IN_KEY'    => config('wordpress.salts.LOGGED_IN_KEY'),
-            'NONCE_KEY'        => config('wordpress.salts.NONCE_KEY'),
-            'AUTH_SALT'        => config('wordpress.salts.AUTH_SALT'),
-            'SECURE_AUTH_SALT' => config('wordpress.salts.SECURE_AUTH_SALT'),
-            'LOGGED_IN_SALT'   => config('wordpress.salts.LOGGED_IN_SALT'),
-            'NONCE_SALT'       => config('wordpress.salts.NONCE_SALT'),
-        ]);
-    }
-
-    /** Resolve the WordPress table prefix from config, falling back to 'wp_'. */
-    public static function tablePrefix(): string
-    {
-        return self::normalizePrefix((string) config('wordpress.table_prefix', 'wp_'));
-    }
-
     public static function normalizePrefix(string $prefix): string
     {
         return $prefix !== '' ? $prefix : 'wp_';

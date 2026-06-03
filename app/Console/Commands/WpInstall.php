@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Process;
 
 class WpInstall extends Command
 {
@@ -12,40 +13,37 @@ class WpInstall extends Command
 
     public function handle(): int
     {
-        // Tell WordPress we are installing so its "not installed" guards stand down.
-        if (! defined('WP_INSTALLING')) {
-            define('WP_INSTALLING', true);
-        }
+        // WordPress must run in a separate process: this Artisan process has Laravel
+        // (and its __() helper) loaded, which would collide with WordPress core.
+        $script = base_path('bootstrap/wp-install.php');
 
-        // Boot WordPress (loads our wp-config shim, which reuses the running app).
-        require base_path('public/wp/wp-load.php');
-        require ABSPATH . 'wp-admin/includes/upgrade.php';
+        $result = Process::path(base_path())->timeout(120)->run([PHP_BINARY, $script]);
 
-        if (is_blog_installed()) {
+        $out = trim($result->output());
+        $err = trim($result->errorOutput());
+
+        if (str_contains($out, 'ALREADY_INSTALLED')) {
             $this->info('WordPress is already installed. Nothing to do.');
 
             return self::SUCCESS;
         }
 
-        $install = config('wordpress.install');
-
-        if (empty($install['admin_password'])) {
-            $this->error('WP_ADMIN_PASSWORD is not set.');
+        if ($result->failed() || ! str_contains($out, 'INSTALLED')) {
+            $this->error('WordPress install failed.');
+            if ($err !== '') {
+                $this->line($err);
+            }
+            if ($out !== '') {
+                $this->line($out);
+            }
 
             return self::FAILURE;
         }
 
-        $result = wp_install(
-            $install['title'],
-            $install['admin_user'],
-            $install['admin_email'],
-            true, // search engine visible
-            '',
-            wp_slash($install['admin_password'])
-        );
+        $this->info('WordPress installed. ' . $out);
 
-        $this->info("WordPress installed. Admin user id: {$result['user_id']}.");
-        $this->line('Log in at ' . home_url('/wp/wp-login.php'));
+        $home = rtrim((string) (config('wordpress.home') ?: config('app.url')), '/');
+        $this->line('Log in at ' . $home . '/wp/wp-login.php');
 
         return self::SUCCESS;
     }
