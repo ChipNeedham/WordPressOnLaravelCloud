@@ -51,6 +51,7 @@ if (! function_exists('wp_env')) {
             'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT',
             'APP_KEY', 'APP_URL', 'APP_ENV', 'APP_DEBUG',
             'WP_TABLE_PREFIX', 'WP_LOCALE',
+            'WP_CODE_READONLY', 'WP_OVERLAY_PREFIX',
             'WP_SITE_TITLE', 'WP_ADMIN_USER', 'WP_ADMIN_PASSWORD', 'WP_ADMIN_EMAIL',
             'AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY',
             'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT',
