@@ -20,7 +20,7 @@ class WpConfigTest extends TestCase
             'APP_URL'     => 'http://example.test/',
             'APP_ENV'     => 'local',
             'APP_DEBUG'   => true,
-            'AUTH_KEY'    => 'k1',
+            'AUTH_KEY'    => 'k1', // remaining salts default to ''
         ], $overrides);
     }
 
@@ -55,8 +55,18 @@ class WpConfigTest extends TestCase
     public function test_throws_on_missing_required_value(): void
     {
         $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('DB_DATABASE');
         $env = $this->validEnv();
         unset($env['DB_DATABASE']);
+        WpConfig::map($env);
+    }
+
+    public function test_throws_when_app_url_is_missing(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('APP_URL');
+        $env = $this->validEnv();
+        unset($env['APP_URL']);
         WpConfig::map($env);
     }
 

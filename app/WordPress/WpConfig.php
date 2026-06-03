@@ -23,12 +23,14 @@ class WpConfig
 
         $host = (string) $env['DB_HOST'];
         $port = $env['DB_PORT'] ?? null;
+        // 3306 is MySQL's default port; omit it from the host string.
         if ($port !== null && $port !== '' && (int) $port !== 3306) {
-            $host .= ':' . $port;
+            $host .= ':' . (string) $port;
         }
 
         $appUrl = rtrim((string) $env['APP_URL'], '/');
 
+        // WordPress-defined values for WP_ENVIRONMENT_TYPE (see WP core).
         $valid = ['local', 'development', 'staging', 'production'];
         $envType = $env['APP_ENV'] ?? 'production';
         if (! in_array($envType, $valid, true)) {
@@ -91,6 +93,7 @@ class WpConfig
         ]);
     }
 
+    /** Resolve the WordPress table prefix from config, falling back to 'wp_'. */
     public static function tablePrefix(): string
     {
         return self::normalizePrefix((string) config('wordpress.table_prefix', 'wp_'));
