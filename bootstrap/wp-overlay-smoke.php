@@ -52,5 +52,23 @@ if (isset($manifest['items']['plugins/' . $slug])) { $fail('item still in manife
 
 $rm($dir);
 
-fwrite(STDOUT, "PASS install->sync->hydrate->remove (version reached {$versionAfterSync})\n");
+// 4. Single-file plugin (e.g. hello.php): the item key IS a file, not a directory.
+$sfKey = 'plugins/overlay-smoke-single.php';
+$sfFile = WP_CONTENT_DIR . '/' . $sfKey;
+file_put_contents($sfFile, "<?php /* Plugin Name: Overlay Smoke Single */\n");
+$overlay->syncItem($sfKey);
+
+@unlink($sfFile);
+@unlink(WP_CONTENT_DIR . '/.overlay-state.json');
+if (is_file($sfFile)) { $fail('single-file plugin not removed before hydrate'); }
+
+$overlay->hydrate();
+if (! is_file($sfFile)) { $fail('single-file plugin not restored by hydrate'); }
+
+$overlay->removeItem($sfKey);
+$manifest = $overlay->readManifest();
+if (isset($manifest['items'][$sfKey])) { $fail('single-file item still in manifest after remove'); }
+@unlink($sfFile);
+
+fwrite(STDOUT, "PASS install->sync->hydrate->remove (dir + single-file; version reached {$versionAfterSync})\n");
 exit(0);

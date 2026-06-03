@@ -65,7 +65,7 @@ class CodeOverlay
     {
         $this->withLock(function () use ($key) {
             $disk = Storage::disk($this->disk);
-            foreach ($disk->allFiles($this->prefix . '/' . $key) as $file) {
+            foreach ($this->s3Files($this->prefix . '/' . $key) as $file) {
                 $disk->delete($file);
             }
             $manifest = OverlayManifest::withoutItem($this->readManifest(), $key);
@@ -119,11 +119,34 @@ class CodeOverlay
             $localFiles[$s3Key] = true;
         }
 
-        foreach ($disk->allFiles($s3Base) as $existing) {
+        foreach ($this->s3Files($s3Base) as $existing) {
             if (! isset($localFiles[$existing])) {
                 $disk->delete($existing);
             }
         }
+    }
+
+    /**
+     * List S3 object keys for an item. allFiles() lists a "directory" prefix; a
+     * single-file item (e.g. a bare-file plugin like "plugins/hello.php") is one
+     * object whose key IS the base, so handle that explicitly.
+     *
+     * @return string[]
+     */
+    private function s3Files(string $s3Base): array
+    {
+        $disk = Storage::disk($this->disk);
+
+        // Directory items: allFiles() lists their contents (non-empty).
+        $files = $disk->allFiles($s3Base);
+        if (! empty($files)) {
+            return $files;
+        }
+
+        // Otherwise the key may itself be a single object (a bare-file plugin).
+        // (allFiles() is checked first because exists() is also true for a
+        // "directory" prefix, which would misclassify directory items.)
+        return $disk->exists($s3Base) ? [$s3Base] : [];
     }
 
     private function pullItem(string $key): void
@@ -135,7 +158,7 @@ class CodeOverlay
 
         $this->rmrf($tmpBase);
 
-        foreach ($disk->allFiles($s3Base) as $s3Key) {
+        foreach ($this->s3Files($s3Base) as $s3Key) {
             $rel = ltrim(substr($s3Key, strlen($s3Base)), '/');
             $dest = $rel === '' ? $tmpBase : $tmpBase . '/' . $rel;
             @mkdir(dirname($dest), 0775, true);
@@ -216,7 +239,10 @@ class CodeOverlay
     /** Serialize manifest read-modify-write across replicas via a MySQL named lock. */
     private function withLock(callable $callback): void
     {
-        DB::selectOne('SELECT GET_LOCK(?, ?) AS l', ['wpcloud_overlay', 10]);
+        $lock = DB::selectOne('SELECT GET_LOCK(?, ?) AS l', ['wpcloud_overlay', 10]);
+        if (! $lock || (int) $lock->l !== 1) {
+            throw new \RuntimeException('Could not acquire the wpcloud_overlay lock; skipping to avoid a split manifest.');
+        }
         try {
             $callback();
         } finally {

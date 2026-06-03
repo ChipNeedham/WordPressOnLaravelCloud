@@ -41,7 +41,10 @@ return [
 
     // Runtime code overlay (sub-project #3).
     'overlay' => [
-        'prefix'   => env('WP_OVERLAY_PREFIX', 'code'),
+        'prefix' => env('WP_OVERLAY_PREFIX', 'code'),
+        // Informational mirror only. The read-only switch is ENFORCED in the
+        // wp-config shim, which reads WP_CODE_READONLY before Laravel boots and
+        // defines DISALLOW_FILE_MODS. Changing this value alone does nothing.
         'readonly' => filter_var(env('WP_CODE_READONLY', false), FILTER_VALIDATE_BOOL),
     ],
 
