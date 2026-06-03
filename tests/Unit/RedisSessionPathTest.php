@@ -22,4 +22,20 @@ class RedisSessionPathTest extends TestCase
             RedisSessionPath::build('10.0.0.5', 6380, 3, 'p@ss/word')
         );
     }
+
+    public function test_builds_acl_path_with_username_and_tls_scheme(): void
+    {
+        $this->assertSame(
+            'tls://cache.laravel.cloud:6379?database=0&auth[user]=application&auth[pass]=secret%2F1',
+            RedisSessionPath::build('cache.laravel.cloud', 6379, 0, 'secret/1', 'application', 'tls')
+        );
+    }
+
+    public function test_username_without_password_is_ignored(): void
+    {
+        $this->assertSame(
+            'tcp://127.0.0.1:6379?database=0',
+            RedisSessionPath::build('127.0.0.1', 6379, 0, '', 'application')
+        );
+    }
 }

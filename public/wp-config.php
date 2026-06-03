@@ -48,11 +48,25 @@ if (! defined('DISALLOW_FILE_MODS')
 // Redis object cache + sessions (sub-project #4). Defined before WordPress loads
 // object-cache.php (wp_start_object_cache), which runs before the Laravel container.
 if (! empty($__env['REDIS_HOST'])) {
+    // REDIS_HOST may carry a scheme prefix (Laravel Cloud injects e.g. "tls://host").
+    $__redis_host = $__env['REDIS_HOST'];
+    $__redis_scheme = $__env['REDIS_SCHEME'] ?? null;
+    if (preg_match('#^([a-zA-Z][a-zA-Z0-9+.\-]*)://(.+)$#', $__redis_host, $__m)) {
+        $__redis_scheme = $__redis_scheme ?: $__m[1];
+        $__redis_host = $__m[2];
+    }
+
     if (! defined('WP_REDIS_HOST')) {
-        define('WP_REDIS_HOST', $__env['REDIS_HOST']);
+        define('WP_REDIS_HOST', $__redis_host);
     }
     if (! defined('WP_REDIS_PORT')) {
         define('WP_REDIS_PORT', (int) ($__env['REDIS_PORT'] ?? 6379));
+    }
+    if ($__redis_scheme && ! defined('WP_REDIS_SCHEME')) {
+        define('WP_REDIS_SCHEME', $__redis_scheme); // e.g. "tls" for managed Valkey
+    }
+    if (! empty($__env['REDIS_USERNAME']) && ! defined('WP_REDIS_USERNAME')) {
+        define('WP_REDIS_USERNAME', $__env['REDIS_USERNAME']); // ACL user (e.g. "application")
     }
     if (! defined('WP_REDIS_PASSWORD') && ! empty($__env['REDIS_PASSWORD'])) {
         define('WP_REDIS_PASSWORD', $__env['REDIS_PASSWORD']);
@@ -61,13 +75,15 @@ if (! empty($__env['REDIS_HOST'])) {
         define('WP_REDIS_DATABASE', (int) ($__env['REDIS_CACHE_DB'] ?? 1));
     }
     if (! defined('WP_REDIS_SESSION_DB')) {
-        define('WP_REDIS_SESSION_DB', (int) ($__env['REDIS_SESSION_DB'] ?? 2));
+        // Managed Valkey is single-DB; default sessions to the cache DB unless overridden.
+        define('WP_REDIS_SESSION_DB', (int) ($__env['REDIS_SESSION_DB'] ?? $__env['REDIS_CACHE_DB'] ?? 2));
     }
     if (! defined('WP_REDIS_PREFIX')) {
         define('WP_REDIS_PREFIX', $__env['WP_REDIS_PREFIX'] ?? 'wpcloud:');
     }
     if (! defined('WP_REDIS_CLIENT')) {
-        define('WP_REDIS_CLIENT', 'phpredis');
+        // The drop-in's phpredis path can't send an ACL username; use Predis when one is set.
+        define('WP_REDIS_CLIENT', ! empty($__env['REDIS_USERNAME']) ? 'predis' : 'phpredis');
     }
     // Never let a cache failure fatal WordPress: the object-cache drop-in falls
     // back to a non-persistent in-memory cache instead of throwing. Laravel Cloud
@@ -75,6 +91,7 @@ if (! empty($__env['REDIS_HOST'])) {
     if (! defined('WP_REDIS_GRACEFUL')) {
         define('WP_REDIS_GRACEFUL', true);
     }
+    unset($__redis_host, $__redis_scheme, $__m);
 } elseif (! defined('WP_REDIS_DISABLED')) {
     define('WP_REDIS_DISABLED', true);
 }

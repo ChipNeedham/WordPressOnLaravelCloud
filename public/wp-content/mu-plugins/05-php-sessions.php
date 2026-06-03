@@ -15,8 +15,10 @@ if (! defined('WP_REDIS_HOST') || ! extension_loaded('redis')) {
 $__sessionPath = RedisSessionPath::build(
     (string) WP_REDIS_HOST,
     (int) (defined('WP_REDIS_PORT') ? WP_REDIS_PORT : 6379),
-    (int) (defined('WP_REDIS_SESSION_DB') ? WP_REDIS_SESSION_DB : 2),
-    defined('WP_REDIS_PASSWORD') ? (string) WP_REDIS_PASSWORD : ''
+    (int) (defined('WP_REDIS_SESSION_DB') ? WP_REDIS_SESSION_DB : 0),
+    defined('WP_REDIS_PASSWORD') ? (string) WP_REDIS_PASSWORD : '',
+    defined('WP_REDIS_USERNAME') ? (string) WP_REDIS_USERNAME : '',
+    defined('WP_REDIS_SCHEME') ? (string) WP_REDIS_SCHEME : 'tcp'
 );
 
 @ini_set('session.save_handler', 'redis');

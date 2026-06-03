@@ -36,13 +36,19 @@ object storage, and putting cache/sessions/cron on Redis.
 | `WP_SITE_TITLE` | your site title (used on first install) |
 | `WP_ADMIN_USER` / `WP_ADMIN_PASSWORD` / `WP_ADMIN_EMAIL` | admin account (used only on first install) |
 | `WP_REDIS_PREFIX` | a unique prefix, e.g. `yoursite:` |
-| `REDIS_CACHE_DB` | `1` |
-| `REDIS_SESSION_DB` | `2` |
 | `WP_DISABLE_CRON` | `true` |
 | `WP_CODE_READONLY` | `false` (set `true` to lock plugins/themes to the deploy artifact) |
 
 Injected automatically by attached resources (do not set by hand): `DB_*`, `AWS_*`, `FILESYSTEM_DISK`,
-`CACHE_STORE`, `REDIS_HOST`, `REDIS_PASSWORD`.
+`CACHE_STORE`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`, `REDIS_PASSWORD`, `REDIS_SCHEME`, `REDIS_CACHE_DB`.
+
+**Cache connection is automatic.** Laravel Valkey is a TLS endpoint with an ACL username (e.g.
+`REDIS_SCHEME=tls`, `REDIS_USERNAME=application`). The object-cache drop-in is configured from these:
+it uses the **Predis** client when an ACL username is present (the phpredis path can't send a username),
+connects over **TLS**, and — because managed Valkey is single-DB — uses the injected `REDIS_CACHE_DB`
+(typically `0`) for the cache and shares it for sessions. You do not set `REDIS_CACHE_DB`/`REDIS_SESSION_DB`
+by hand on Cloud. The cache also **fails gracefully** (`WP_REDIS_GRACEFUL`): a Redis outage degrades to a
+non-persistent cache rather than taking the site down.
 
 ## 4. Build & deploy commands (environment settings)
 
