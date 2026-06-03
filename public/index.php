@@ -1,20 +1,20 @@
 <?php
+/**
+ * Front controller for WordPress on Laravel Cloud.
+ *
+ * 1. Answer Cloud health checks with a dependency-free 200 (before anything
+ *    else loads, so a DB/cache outage can never fail the health check).
+ * 2. Otherwise hand the request to WordPress.
+ */
 
-use Illuminate\Foundation\Application;
-use Illuminate\Http\Request;
+$path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$path = rtrim($path, '/');
 
-define('LARAVEL_START', microtime(true));
-
-// Determine if the application is in maintenance mode...
-if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
-    require $maintenance;
+if ($path === '/up' || $path === '/health') {
+    http_response_code(200);
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo 'OK';
+    exit;
 }
 
-// Register the Composer autoloader...
-require __DIR__.'/../vendor/autoload.php';
-
-// Bootstrap Laravel and handle the request...
-/** @var Application $app */
-$app = require_once __DIR__.'/../bootstrap/app.php';
-
-$app->handleRequest(Request::capture());
+require __DIR__ . '/wp/index.php';
