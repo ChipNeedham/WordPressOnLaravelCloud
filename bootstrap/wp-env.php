@@ -52,6 +52,8 @@ if (! function_exists('wp_env')) {
             'APP_KEY', 'APP_URL', 'APP_ENV', 'APP_DEBUG',
             'WP_TABLE_PREFIX', 'WP_LOCALE',
             'WP_CODE_READONLY', 'WP_OVERLAY_PREFIX',
+            'REDIS_HOST', 'REDIS_PORT', 'REDIS_PASSWORD', 'REDIS_CACHE_DB',
+            'REDIS_SESSION_DB', 'WP_REDIS_PREFIX', 'WP_DISABLE_CRON',
             'WP_SITE_TITLE', 'WP_ADMIN_USER', 'WP_ADMIN_PASSWORD', 'WP_ADMIN_EMAIL',
             'AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY',
             'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT',

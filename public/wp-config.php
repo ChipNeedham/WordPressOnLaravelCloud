@@ -45,6 +45,39 @@ if (! defined('DISALLOW_FILE_MODS')
     define('DISALLOW_FILE_MODS', true);
 }
 
+// Redis object cache + sessions (sub-project #4). Defined before WordPress loads
+// object-cache.php (wp_start_object_cache), which runs before the Laravel container.
+if (! empty($__env['REDIS_HOST'])) {
+    if (! defined('WP_REDIS_HOST')) {
+        define('WP_REDIS_HOST', $__env['REDIS_HOST']);
+    }
+    if (! defined('WP_REDIS_PORT')) {
+        define('WP_REDIS_PORT', (int) ($__env['REDIS_PORT'] ?? 6379));
+    }
+    if (! defined('WP_REDIS_PASSWORD') && ! empty($__env['REDIS_PASSWORD'])) {
+        define('WP_REDIS_PASSWORD', $__env['REDIS_PASSWORD']);
+    }
+    if (! defined('WP_REDIS_DATABASE')) {
+        define('WP_REDIS_DATABASE', (int) ($__env['REDIS_CACHE_DB'] ?? 1));
+    }
+    if (! defined('WP_REDIS_SESSION_DB')) {
+        define('WP_REDIS_SESSION_DB', (int) ($__env['REDIS_SESSION_DB'] ?? 2));
+    }
+    if (! defined('WP_REDIS_PREFIX')) {
+        define('WP_REDIS_PREFIX', $__env['WP_REDIS_PREFIX'] ?? 'wpcloud:');
+    }
+    if (! defined('WP_REDIS_CLIENT')) {
+        define('WP_REDIS_CLIENT', 'phpredis');
+    }
+} elseif (! defined('WP_REDIS_DISABLED')) {
+    define('WP_REDIS_DISABLED', true);
+}
+
+// Cron is driven by the Laravel scheduler, not WordPress's on-page-load loopback.
+if (! defined('DISABLE_WP_CRON')) {
+    define('DISABLE_WP_CRON', filter_var($__env['WP_DISABLE_CRON'] ?? true, FILTER_VALIDATE_BOOL));
+}
+
 unset($__env, $wp_const_name, $wp_const_value);
 
 // ABSPATH is normally defined by wp-load.php (public/wp/). Guard for direct includes.

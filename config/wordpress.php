@@ -48,4 +48,14 @@ return [
         'readonly' => filter_var(env('WP_CODE_READONLY', false), FILTER_VALIDATE_BOOL),
     ],
 
+    // Redis-backed cache/sessions + scheduler-driven cron (sub-project #4).
+    'redis' => [
+        'cache_db'   => env('REDIS_CACHE_DB', 1),
+        'session_db' => env('REDIS_SESSION_DB', 2),
+        'prefix'     => env('WP_REDIS_PREFIX', 'wpcloud:'),
+    ],
+    'cron' => [
+        'disabled' => filter_var(env('WP_DISABLE_CRON', true), FILTER_VALIDATE_BOOL),
+    ],
+
 ];
