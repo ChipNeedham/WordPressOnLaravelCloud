@@ -13,6 +13,8 @@ class WpCron extends Command
 
     public function handle(): int
     {
+        // Generous timeout for long-running cron hooks; concurrent runs are already
+        // prevented by the scheduler's withoutOverlapping() lock.
         $result = Process::path(base_path())->timeout(300)
             ->run([PHP_BINARY, base_path('bootstrap/wp-cron.php')]);
 

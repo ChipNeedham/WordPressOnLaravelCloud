@@ -38,6 +38,9 @@ switch ($op) {
         exit(0);
 
     case 'cron':
+        if (! defined('DOING_CRON')) {
+            define('DOING_CRON', true); // satisfy wpcloud_run_due_cron()'s contract
+        }
         require dirname(__DIR__) . '/bootstrap/wp-cron-run.php';
         $GLOBALS['__cron_fired'] = false;
         add_action('wpcloud_cron_smoke', static function () { $GLOBALS['__cron_fired'] = true; });

@@ -5,7 +5,10 @@
  */
 
 define('DOING_CRON', true);
-$_SERVER['HTTP_HOST'] = getenv('APP_HOST') ?: 'wordpressonlaravelcloud.test';
+// Give cron a sane host for any URL generation (emails, etc.). On Cloud APP_URL is
+// injected; locally it falls back to the dev domain.
+$_SERVER['HTTP_HOST'] = parse_url((string) (getenv('APP_URL') ?: ''), PHP_URL_HOST)
+    ?: 'wordpressonlaravelcloud.test';
 $_SERVER['REQUEST_URI'] = '/wp-cron.php';
 
 require dirname(__DIR__) . '/public/wp/wp-load.php';
