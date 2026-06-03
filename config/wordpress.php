@@ -33,4 +33,10 @@ return [
         'locale'         => env('WP_LOCALE', 'en_US'),
     ],
 
+    // Object storage for the media library (sub-project #2).
+    'uploads' => [
+        'disk'   => env('WP_UPLOADS_DISK', 's3'),
+        'prefix' => env('WP_UPLOADS_PREFIX', 'uploads'),
+    ],
+
 ];
