@@ -12,6 +12,16 @@
 require_once dirname(__DIR__) . '/bootstrap/wp-env.php';
 require_once dirname(__DIR__) . '/app/WordPress/WpConfig.php';
 
+// Laravel Cloud terminates TLS at the edge and forwards plain HTTP with
+// X-Forwarded-Proto. Trust it so WordPress's is_ssl() is correct — otherwise
+// wp-login.php / wp-admin (which force SSL against an https siteurl) redirect-loop.
+if (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') {
+    $_SERVER['HTTPS'] = 'on';
+    if (! empty($_SERVER['HTTP_X_FORWARDED_PORT'])) {
+        $_SERVER['SERVER_PORT'] = $_SERVER['HTTP_X_FORWARDED_PORT'];
+    }
+}
+
 $__env = wp_env();
 
 foreach (\App\WordPress\WpConfig::map($__env) as $wp_const_name => $wp_const_value) {
