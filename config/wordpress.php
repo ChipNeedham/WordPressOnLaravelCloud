@@ -34,8 +34,12 @@ return [
     ],
 
     // Object storage for the media library (sub-project #2).
+    // Default to the app's configured filesystem disk so we follow whatever Laravel
+    // Cloud names the attached bucket (it sets FILESYSTEM_DISK to the bucket's disk
+    // name, e.g. "public", and configures it from LARAVEL_CLOUD_DISK_CONFIG). Locally
+    // FILESYSTEM_DISK=s3 (MinIO). Override explicitly with WP_UPLOADS_DISK if needed.
     'uploads' => [
-        'disk'   => env('WP_UPLOADS_DISK', 's3'),
+        'disk'   => env('WP_UPLOADS_DISK', env('FILESYSTEM_DISK', 's3')),
         'prefix' => env('WP_UPLOADS_PREFIX', 'uploads'),
     ],
 

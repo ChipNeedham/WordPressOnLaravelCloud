@@ -8,9 +8,13 @@ object storage, and putting cache/sessions/cron on Redis.
 
 - **MySQL database** — **required, and it must be MySQL (not Postgres).** The code overlay uses a
   MySQL named lock (`GET_LOCK`). Attaching injects `DB_*`.
-- **Object Storage bucket — must be PUBLIC.** Media is served by direct bucket URL. Attaching injects
-  `AWS_*` and `FILESYSTEM_DISK`. If the bucket's disk name is not `s3`, set `WP_UPLOADS_DISK` to that
-  name. Laravel Cloud auto-adds your environment domains to the bucket CORS policy.
+- **Object Storage bucket — must be PUBLIC.** Media is served by direct bucket URL. Laravel Cloud does
+  **not** inject `AWS_*`; it sets `FILESYSTEM_DISK` to the bucket's **disk name** (e.g. `public`) and
+  configures that disk from `LARAVEL_CLOUD_DISK_CONFIG` (the framework wires it automatically). Our
+  uploads follow `FILESYSTEM_DISK` by default, so **no `WP_UPLOADS_DISK` is needed** — just ensure the
+  bucket is attached and set as the default disk. Laravel Cloud auto-adds your environment domains to
+  the bucket CORS policy. (If you attach multiple buckets and want uploads on a non-default one, set
+  `WP_UPLOADS_DISK` to its disk name.)
 - **Valkey (KV store)** — for object cache + sessions + the scheduler lock. Attaching injects
   `CACHE_STORE`, `REDIS_HOST`, `REDIS_PASSWORD`.
 
